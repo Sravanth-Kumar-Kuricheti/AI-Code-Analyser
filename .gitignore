@@ -44,8 +44,7 @@ celerybeat.pid
 *.log
 
 # Streamlit
-.streamlit/
-!frontend/.streamlit/config.toml
+.streamlit/secrets.toml
 
 # Local Runner
 powershell.bat

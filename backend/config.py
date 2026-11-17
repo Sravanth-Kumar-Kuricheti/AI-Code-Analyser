@@ -44,6 +44,17 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
+# Synchronize Streamlit Cloud secrets if running on Streamlit Cloud
+try:
+    import streamlit as st
+    if hasattr(st, "secrets"):
+        for k in ("GROQ_API_KEY", "GITHUB_TOKEN", "DATABASE_URL", "BACKEND_API_URL", "LLM_MODEL"):
+            if k in st.secrets and st.secrets[k]:
+                setattr(settings, k, str(st.secrets[k]))
+                os.environ[k] = str(st.secrets[k])
+except Exception:
+    pass
+
 # Ensure storage directories exist
 os.makedirs(settings.REPO_STORAGE_PATH, exist_ok=True)
 os.makedirs(settings.CACHE_DIR, exist_ok=True)
