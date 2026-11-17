@@ -94,3 +94,7 @@ def review_pull_request(payload: PRReviewRequest, db: Session = Depends(get_db))
         "repo_id": payload.repo_id,
         "review_summary": review_feedback
     }
+
+# Compatibility aliases
+evaluate_architecture_decision = advise_architecture_decision
+review_pr = review_pull_request

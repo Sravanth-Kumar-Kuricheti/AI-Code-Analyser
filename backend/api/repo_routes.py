@@ -14,7 +14,7 @@ from backend.services.analysis_service import AnalysisService
 router = APIRouter(prefix="/repos", tags=["Repositories"])
 
 @router.post("/connect", response_model=RepoResponse)
-def connect_repository(payload: RepoConnectRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+def connect_repository(payload: RepoConnectRequest, background_tasks: BackgroundTasks = None, db: Session = Depends(get_db)):
     repo_meta = RepoService.clone_or_link_repository(
         url_or_path=payload.url_or_path,
         branch=payload.branch or "main",

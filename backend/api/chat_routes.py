@@ -104,3 +104,6 @@ def get_chat_history(repo_id: int, db: Session = Depends(get_db)):
         }
         for m in messages
     ]
+
+# Compatibility alias
+ask_codebase_qa = ask_codebase_question

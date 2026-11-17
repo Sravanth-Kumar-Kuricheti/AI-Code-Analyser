@@ -60,3 +60,6 @@ def get_api_call_flows(repo_id: int, db: Session = Depends(get_db)):
         "endpoint_count": len(flows),
         "flows": flows
     }
+
+# Compatibility alias
+get_call_flows = get_api_call_flows

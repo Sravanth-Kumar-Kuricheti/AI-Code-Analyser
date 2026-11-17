@@ -43,8 +43,10 @@ def _safe_request(url: str, method: str = "GET", json_data: dict = None, params:
         return fallback()
     raise RuntimeError("Backend server is unreachable and no in-process fallback was provided.")
 
-def _serialize_repo(r: Repository) -> Dict[str, Any]:
-    """Converts Repository ORM model to dictionary."""
+def _serialize_repo(r: Any) -> Dict[str, Any]:
+    """Converts Repository ORM model or dictionary to dictionary."""
+    if isinstance(r, dict):
+        return r
     return {
         "id": r.id,
         "name": r.name,
@@ -61,18 +63,20 @@ def _serialize_repo(r: Repository) -> Dict[str, Any]:
         "created_at": str(r.created_at) if getattr(r, "created_at", None) else None
     }
 
-def _serialize_file(f: FileRecord) -> Dict[str, Any]:
-    """Converts FileRecord ORM model to dictionary."""
+def _serialize_file(f: Any) -> Dict[str, Any]:
+    """Converts FileRecord ORM model or dictionary to dictionary."""
+    if isinstance(f, dict):
+        return f
     return {
         "id": f.id,
-        "repo_id": f.repo_id,
+        "repo_id": getattr(f, "repo_id", None),
         "path": f.path,
         "language": f.language,
-        "size_bytes": f.size_bytes,
+        "size_bytes": getattr(f, "size_bytes", 0),
         "lines_of_code": f.lines_of_code,
-        "cyclomatic_complexity": f.cyclomatic_complexity,
-        "maintainability_index": f.maintainability_index,
-        "has_tests": f.has_tests
+        "cyclomatic_complexity": getattr(f, "cyclomatic_complexity", 1.0),
+        "maintainability_index": getattr(f, "maintainability_index", 100.0),
+        "has_tests": getattr(f, "has_tests", False)
     }
 
 class RepoPilotAPI:
@@ -86,7 +90,7 @@ class RepoPilotAPI:
             try:
                 from backend.api.repo_routes import connect_repository
                 from backend.schemas.pydantic_models import RepoConnectRequest
-                res = connect_repository(RepoConnectRequest(url_or_path=url_or_path, branch=branch, name=name), db=db)
+                res = connect_repository(RepoConnectRequest(url_or_path=url_or_path, branch=branch, name=name), background_tasks=None, db=db)
                 return _serialize_repo(res)
             finally:
                 db.close()
@@ -147,7 +151,8 @@ class RepoPilotAPI:
             db = SessionLocal()
             try:
                 from backend.api.repo_routes import get_file_content
-                return get_file_content(repo_id, file_path, db=db)
+                res = get_file_content(repo_id, file_path, db=db)
+                return res.model_dump() if hasattr(res, "model_dump") else res.dict() if hasattr(res, "dict") else res
             finally:
                 db.close()
         return _safe_request(f"{BASE_URL}/repos/{repo_id}/file-content", "GET", params={"file_path": file_path}, timeout=15, fallback=fallback)
@@ -158,9 +163,10 @@ class RepoPilotAPI:
             init_db()
             db = SessionLocal()
             try:
-                from backend.api.chat_routes import ask_codebase_qa
+                from backend.api.chat_routes import ask_codebase_question
                 from backend.schemas.pydantic_models import ChatRequest
-                return ask_codebase_qa(ChatRequest(repo_id=repo_id, query=query), db=db)
+                res = ask_codebase_question(ChatRequest(repo_id=repo_id, query=query), db=db)
+                return res.model_dump() if hasattr(res, "model_dump") else res.dict() if hasattr(res, "dict") else res
             finally:
                 db.close()
         return _safe_request(f"{BASE_URL}/chat/qa", "POST", {"repo_id": repo_id, "query": query}, timeout=60, fallback=fallback)

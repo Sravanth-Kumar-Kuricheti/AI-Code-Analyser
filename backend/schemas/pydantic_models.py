@@ -91,6 +91,8 @@ class TestGenerationRequest(BaseModel):
     symbol_name: str
     framework: str = "pytest" # pytest or jest
 
+TestGenRequest = TestGenerationRequest
+
 class PRReviewRequest(BaseModel):
     repo_id: int
     diff_text: str

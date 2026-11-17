@@ -41,3 +41,7 @@ def generate_unit_tests(payload: TestGenerationRequest, db: Session = Depends(ge
         res = TestCaseGenerator.generate_pytest(norm_path, sym_dict, content)
 
     return res
+
+# Compatibility alias
+generate_test_cases = generate_unit_tests
+TestGenRequest = TestGenerationRequest
