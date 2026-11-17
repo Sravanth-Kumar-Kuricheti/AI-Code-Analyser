@@ -166,6 +166,32 @@ class RepoPilotAPI:
         return _safe_request(f"{BASE_URL}/chat/qa", "POST", {"repo_id": repo_id, "query": query}, timeout=60, fallback=fallback)
 
     @staticmethod
+    def explain_symbol(repo_id: int, file_path: str, symbol_name: str = "", code_snippet: str = "") -> Dict[str, Any]:
+        def fallback():
+            init_db()
+            db = SessionLocal()
+            try:
+                from backend.api.chat_routes import explain_code_symbol
+                from backend.schemas.pydantic_models import ExplainRequest
+                return explain_code_symbol(ExplainRequest(repo_id=repo_id, file_path=file_path, symbol_name=symbol_name, code_snippet=code_snippet), db=db)
+            finally:
+                db.close()
+        return _safe_request(f"{BASE_URL}/chat/explain", "POST", {"repo_id": repo_id, "file_path": file_path, "symbol_name": symbol_name, "code_snippet": code_snippet}, timeout=30, fallback=fallback)
+
+    @staticmethod
+    def investigate_bug(repo_id: int, error_message: str, stack_trace: str = "", related_file: str = "") -> Dict[str, Any]:
+        def fallback():
+            init_db()
+            db = SessionLocal()
+            try:
+                from backend.api.chat_routes import investigate_bug
+                from backend.schemas.pydantic_models import BugInvestigationRequest
+                return investigate_bug(BugInvestigationRequest(repo_id=repo_id, error_message=error_message, stack_trace=stack_trace, related_file=related_file), db=db)
+            finally:
+                db.close()
+        return _safe_request(f"{BASE_URL}/chat/bug-investigate", "POST", {"repo_id": repo_id, "error_message": error_message, "stack_trace": stack_trace, "related_file": related_file}, timeout=30, fallback=fallback)
+
+    @staticmethod
     def get_architecture_graph(repo_id: int) -> Dict[str, Any]:
         def fallback():
             init_db()

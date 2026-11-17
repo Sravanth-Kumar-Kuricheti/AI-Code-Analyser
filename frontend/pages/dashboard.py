@@ -79,20 +79,35 @@ def _render_language_chart(repo_id: int):
     except Exception as e:
         st.error(f"Failed to fetch files breakdown: {e}")
 
+def safe_switch_page(page_name: str):
+    """Programmatically navigate to another page safely across root or frontend entrypoints."""
+    clean_name = page_name.replace("frontend/", "").replace("pages/", "")
+    candidates = [
+        f"frontend/pages/{clean_name}",
+        f"pages/{clean_name}",
+        clean_name
+    ]
+    for cand in candidates:
+        try:
+            st.switch_page(cand)
+            return
+        except Exception:
+            continue
+
 def _render_quick_actions():
     """Renders shortcut navigation buttons to intelligence modules."""
     st.subheader("⚡ Quick Intelligence Actions")
     st.write("Navigate directly into deep codebase inspection:")
     if st.button("💬 Ask Codebase Q&A", width="stretch"):
-        st.switch_page("pages/ai_chat.py")
+        safe_switch_page("ai_chat.py")
     if st.button("🏛️ View Architecture Map", width="stretch"):
-        st.switch_page("pages/architecture.py")
+        safe_switch_page("architecture.py")
     if st.button("⚡ Simulate Change Impact", width="stretch"):
-        st.switch_page("pages/change_impact.py")
+        safe_switch_page("change_impact.py")
     if st.button("🛡️ Audit Security & Secrets", width="stretch"):
-        st.switch_page("pages/security.py")
+        safe_switch_page("security.py")
     if st.button("🚀 Developer Onboarding Guide", width="stretch"):
-        st.switch_page("pages/onboarding.py")
+        safe_switch_page("onboarding.py")
 
 def _load_repositories() -> list:
     """Safely retrieves connected repositories."""
@@ -111,7 +126,7 @@ def show_dashboard():
     if not repos:
         st.info("No repositories connected yet. Navigate to Connect Repository to ingest your first codebase.")
         if st.button("🔗 Connect a Repository Now", type="primary"):
-            st.switch_page("pages/repository.py")
+            safe_switch_page("repository.py")
         return
 
     col_sel, col_stat = st.columns([3, 1])

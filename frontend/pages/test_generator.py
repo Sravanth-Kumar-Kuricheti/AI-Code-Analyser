@@ -30,6 +30,10 @@ def _select_test_targets(repo_id: int) -> tuple[str, str, str]:
     except Exception:
         files = []
 
+    if not files:
+        st.info("No source files available in this repository.")
+        return "", "", "pytest"
+
     selected_file = st.selectbox("Select Target File", options=[f["path"] for f in files])
     try:
         file_detail = api.get_file_content(repo_id, selected_file)
@@ -81,6 +85,9 @@ def show_test_generator_page():
 
     selected_repo_id = select_active_repo(repos, label="Target Repository")
     selected_file, target_fn, framework = _select_test_targets(selected_repo_id)
+
+    if not selected_file:
+        return
 
     if st.button("⚡ Generate Unit Test Suite", type="primary"):
         _handle_generate_tests(selected_repo_id, selected_file, target_fn, framework)

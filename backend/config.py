@@ -47,11 +47,14 @@ settings = Settings()
 # Synchronize Streamlit Cloud secrets if running on Streamlit Cloud
 try:
     import streamlit as st
-    if hasattr(st, "secrets"):
-        for k in ("GROQ_API_KEY", "GITHUB_TOKEN", "DATABASE_URL", "BACKEND_API_URL", "LLM_MODEL"):
-            if k in st.secrets and st.secrets[k]:
-                setattr(settings, k, str(st.secrets[k]))
-                os.environ[k] = str(st.secrets[k])
+    for k in ("GROQ_API_KEY", "GITHUB_TOKEN", "DATABASE_URL", "BACKEND_API_URL", "LLM_MODEL"):
+        try:
+            val = st.secrets.get(k)
+            if val:
+                setattr(settings, k, str(val))
+                os.environ[k] = str(val)
+        except Exception:
+            pass
 except Exception:
     pass
 

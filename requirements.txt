@@ -17,7 +17,7 @@ psycopg[binary]>=3.1.18
 
 # AI & Embeddings & Vector Search
 groq>=0.5.0
-sentence-transformers>=2.6.0
+# sentence-transformers>=2.6.0  # Optional: un-comment if GPU/large memory available
 qdrant-client>=1.8.0
 networkx>=3.2.1
 

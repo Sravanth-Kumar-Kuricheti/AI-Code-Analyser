@@ -18,14 +18,17 @@ class VectorStore:
         storage_dir.mkdir(parents=True, exist_ok=True)
         self.client = None
         
-        # 1. Try remote Qdrant cluster if configured
-        if not settings.QDRANT_IN_MEMORY and settings.QDRANT_HOST != "localhost":
+        # 1. In-memory mode takes priority when configured
+        if settings.QDRANT_IN_MEMORY:
+            self.client = QdrantClient(":memory:")
+        # 2. Try remote Qdrant cluster if configured
+        elif settings.QDRANT_HOST not in ("localhost", "127.0.0.1"):
             try:
                 self.client = QdrantClient(host=settings.QDRANT_HOST, port=settings.QDRANT_PORT, timeout=5)
             except Exception:
                 self.client = None
 
-        # 2. Try local persistent disk storage with graceful lock-contention fallback
+        # 3. Try local persistent disk storage with graceful lock-contention fallback
         if self.client is None:
             try:
                 self.client = QdrantClient(path=str(storage_dir))
